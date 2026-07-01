@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Minha Estante BR">
+  <rect width="512" height="512" rx="96" fill="#35564a"/>
+  <rect x="132" y="104" width="82" height="304" rx="20" fill="#fffdf8"/>
+  <rect x="224" y="128" width="72" height="280" rx="18" fill="#dfe8dc"/>
+  <rect x="306" y="94" width="74" height="314" rx="18" fill="#c86b56"/>
+  <rect x="152" y="146" width="42" height="14" rx="7" fill="#35564a"/>
+  <rect x="242" y="172" width="36" height="14" rx="7" fill="#35564a"/>
+  <rect x="324" y="140" width="38" height="14" rx="7" fill="#fffdf8"/>
+  <rect x="112" y="418" width="288" height="26" rx="13" fill="#d6a84a"/>
+</svg>
