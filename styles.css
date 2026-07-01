@@ -347,6 +347,19 @@ textarea:focus {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--surface-strong);
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    transform 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.book-card:hover,
+.book-card:focus-visible {
+  border-color: rgba(53, 86, 74, 0.55);
+  box-shadow: 0 12px 28px rgba(44, 55, 48, 0.1);
+  transform: translateY(-1px);
+  outline: none;
 }
 
 .cover {

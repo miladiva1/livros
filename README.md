@@ -1,14 +1,14 @@
 # Minha Estante BR
 
-PWA para organizar livros nacionais, autoras brasileiras e links de compra em editoras diferentes.
+PWA para organizar livros nacionais, autoras brasileiras e links de anúncios da Amazon.
 
 ## O que esta versao faz
 
-- Cadastra livros com titulo, autora, editora, status, link, capa e observacoes.
+- Cadastra livros com titulo, autora, editora, status, link da Amazon, capa e observacoes.
 - Filtra por status e editora.
 - Busca por titulo, autora, editora e observacoes.
 - Marca prioridade de compra.
-- Abre o link da editora ou pagina de compra.
+- Abre o anúncio da Amazon ao clicar no livro ou no botão "Abrir anúncio".
 - Salva tudo no navegador com `localStorage`.
 - Exporta e importa a lista em JSON.
 - Funciona como PWA com manifest e service worker.

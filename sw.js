@@ -1,9 +1,9 @@
-const CACHE_NAME = "minha-estante-br-v2";
+const CACHE_NAME = "minha-estante-br-v4";
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./styles.css?v=2",
-  "./app.js?v=1",
+  "./styles.css?v=3",
+  "./app.js?v=3",
   "./manifest.webmanifest",
   "./assets/icon.svg",
 ];

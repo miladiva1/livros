@@ -4,11 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#35564a" />
-    <meta name="description" content="Lista pessoal de livros nacionais, autoras brasileiras e links de editoras." />
+    <meta name="description" content="Lista pessoal de livros nacionais, autoras brasileiras e anúncios da Amazon." />
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="assets/icon.svg" />
-    <link rel="stylesheet" href="styles.css?v=2" />
+    <link rel="stylesheet" href="styles.css?v=3" />
     <title>Minha Estante BR</title>
   </head>
   <body>
@@ -61,7 +61,7 @@
         <header class="topbar">
           <div>
             <p class="eyebrow">Organizador pessoal</p>
-            <h1>Livros nacionais, autoras brasileiras e editoras reunidos.</h1>
+            <h1>Livros nacionais e anúncios da Amazon reunidos.</h1>
           </div>
           <button class="primary-button" id="newBookButton" type="button">Adicionar livro</button>
         </header>
@@ -141,8 +141,8 @@
                 </label>
               </div>
               <label>
-                <span>Link da editora ou compra</span>
-                <input id="linkInput" type="url" placeholder="https://..." />
+                <span>Link do anúncio na Amazon</span>
+                <input id="linkInput" type="url" placeholder="https://www.amazon.com.br/..." />
               </label>
               <label>
                 <span>URL da capa</span>
@@ -167,7 +167,7 @@
     </div>
 
     <template id="bookTemplate">
-      <article class="book-card">
+      <article class="book-card" tabindex="0" role="link" aria-label="Abrir anúncio do livro">
         <div class="cover" data-cover>
           <span data-cover-initials></span>
         </div>
@@ -183,7 +183,7 @@
           </div>
           <p class="book-notes" data-notes hidden></p>
           <div class="book-actions">
-            <a class="link-button" data-link target="_blank" rel="noreferrer">Abrir editora</a>
+            <a class="link-button" data-link target="_blank" rel="noreferrer">Abrir anúncio</a>
             <button class="small-button" data-edit type="button">Editar</button>
             <button class="small-button danger" data-delete type="button">Excluir</button>
           </div>
@@ -192,6 +192,6 @@
     </template>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
-    <script src="app.js?v=1" defer></script>
+    <script src="app.js?v=3" defer></script>
   </body>
 </html>

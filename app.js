@@ -14,7 +14,7 @@ const sampleBooks = [
     author: "Ana Maria Gonçalves",
     publisher: "Record",
     status: "quero-comprar",
-    link: "https://www.record.com.br/",
+    link: "https://www.amazon.com.br/s?k=Um+defeito+de+cor+Ana+Maria+Gon%C3%A7alves",
     cover: "",
     notes: "Exemplo inicial para testar a lista.",
     priority: true,
@@ -26,7 +26,7 @@ const sampleBooks = [
     author: "Carolina Maria de Jesus",
     publisher: "Ática",
     status: "ja-li",
-    link: "https://www.atica.com.br/",
+    link: "https://www.amazon.com.br/s?k=Quarto+de+despejo+Carolina+Maria+de+Jesus",
     cover: "",
     notes: "Manter na lista de lidos.",
     priority: false,
@@ -38,7 +38,7 @@ const sampleBooks = [
     author: "Itamar Vieira Junior",
     publisher: "Todavia",
     status: "comprado",
-    link: "https://todavialivros.com.br/",
+    link: "https://www.amazon.com.br/s?k=Torto+arado+Itamar+Vieira+Junior",
     cover: "",
     notes: "",
     priority: false,
@@ -97,10 +97,32 @@ function loadBooks() {
 
   try {
     const parsed = JSON.parse(stored);
-    return Array.isArray(parsed) ? parsed : sampleBooks;
+    return Array.isArray(parsed) ? parsed.map(normalizeStoredBook) : sampleBooks;
   } catch {
     return sampleBooks;
   }
+}
+
+function amazonSearchUrl(book) {
+  const query = encodeURIComponent(`${book.title || ""} ${book.author || ""}`.trim());
+  return `https://www.amazon.com.br/s?k=${query || "livros+nacionais"}`;
+}
+
+function isAmazonLink(link) {
+  return /^https?:\/\/([^/]+\.)?amazon\.com\.br\//i.test(link || "");
+}
+
+function normalizeStoredBook(book) {
+  const oldLinks = {
+    "https://www.record.com.br/": "https://www.amazon.com.br/s?k=Um+defeito+de+cor+Ana+Maria+Gon%C3%A7alves",
+    "https://www.atica.com.br/": "https://www.amazon.com.br/s?k=Quarto+de+despejo+Carolina+Maria+de+Jesus",
+    "https://todavialivros.com.br/": "https://www.amazon.com.br/s?k=Torto+arado+Itamar+Vieira+Junior",
+  };
+
+  return {
+    ...book,
+    link: oldLinks[book.link] || (isAmazonLink(book.link) ? book.link : ""),
+  };
 }
 
 function saveBooks() {
@@ -198,6 +220,7 @@ function renderBooks() {
     const initials = item.querySelector("[data-cover-initials]");
     const link = item.querySelector("[data-link]");
     const notes = item.querySelector("[data-notes]");
+    const targetLink = isAmazonLink(book.link) ? book.link : amazonSearchUrl(book);
 
     item.querySelector("[data-title]").textContent = book.title;
     item.querySelector("[data-meta]").textContent = `${book.author}`;
@@ -225,13 +248,18 @@ function renderBooks() {
       notes.textContent = book.notes;
     }
 
-    if (book.link) {
-      link.href = book.link;
-    } else {
-      link.classList.add("disabled");
-      link.removeAttribute("href");
-      link.textContent = "Sem link";
-    }
+    link.href = targetLink;
+    if (!isAmazonLink(book.link)) link.textContent = "Buscar na Amazon";
+    item.addEventListener("click", (event) => {
+      const interactive = event.target.closest("a, button, input, select, textarea, label");
+      if (!interactive) window.open(targetLink, "_blank", "noopener,noreferrer");
+    });
+    item.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        window.open(targetLink, "_blank", "noopener,noreferrer");
+      }
+    });
 
     item.querySelector("[data-edit]").addEventListener("click", () => editBook(book.id));
     item.querySelector("[data-delete]").addEventListener("click", () => deleteBook(book.id));
