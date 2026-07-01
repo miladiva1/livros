@@ -351,8 +351,13 @@ async function deleteBook(id) {
   const confirmed = confirm(`Excluir "${book.title}" da sua lista?`);
   if (!confirmed) return;
 
-  await removeBook(id);
-  showToast("Livro excluído.");
+  try {
+    await removeBook(id);
+    showToast("Livro excluido.");
+  } catch (error) {
+    console.error(error);
+    showToast("Nao consegui excluir na nuvem. Confira o Firebase.");
+  }
 }
 
 async function handleSubmit(event) {
@@ -372,9 +377,14 @@ async function handleSubmit(event) {
     updatedAt: Date.now(),
   };
 
-  await saveBook(book);
-  showToast(els.bookId.value ? "Livro atualizado." : "Livro adicionado.");
-  resetForm();
+  try {
+    await saveBook(book);
+    showToast(els.bookId.value ? "Livro atualizado." : "Livro adicionado.");
+    resetForm();
+  } catch (error) {
+    console.error(error);
+    showToast("Nao consegui salvar na nuvem. Confira o Firebase.");
+  }
 }
 
 function clearFilters() {
@@ -472,10 +482,30 @@ function subscribeToBooks() {
     async (snapshot) => {
       const remoteBooks = snapshot.docs.map((doc) => normalizeBook({ id: doc.id, ...doc.data() }));
 
-      if (!state.remoteLoaded && remoteBooks.length === 0 && localBooks.length > 0) {
-        await Promise.all(localBooks.map((book) => saveBook(book)));
+      if (!state.remoteLoaded && localBooks.length > 0) {
+        const remoteIds = new Set(snapshot.docs.map((doc) => doc.id));
+        const localBooksToUpload = localBooks.filter((book) => !remoteIds.has(book.id));
+
+        if (localBooksToUpload.length > 0) {
+          try {
+            await Promise.all(localBooksToUpload.map((book) => saveBook(book)));
+            state.remoteLoaded = true;
+            showAccountMessage(
+              `${localBooksToUpload.length} livro${localBooksToUpload.length > 1 ? "s" : ""} sincronizado${localBooksToUpload.length > 1 ? "s" : ""} na nuvem.`,
+              "success",
+            );
+          } catch (error) {
+            console.error(error);
+            showAccountMessage("Nao consegui sincronizar os livros locais. Confira o Firestore.", "error");
+          }
+          return;
+        }
+      }
+
+      if (!state.remoteLoaded && remoteBooks.length === 0) {
+        state.books = [];
+        saveLocalBooks();
         state.remoteLoaded = true;
-        return;
       }
 
       state.remoteLoaded = true;
