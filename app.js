@@ -67,6 +67,7 @@ const state = {
   search: "",
   publisher: "todas",
   sort: "updated-desc",
+  authMode: "login",
   firebaseReady: false,
   user: null,
   remoteLoaded: false,
@@ -84,14 +85,16 @@ const els = {
   statusTabs: [...document.querySelectorAll(".status-tab")],
   signedOutPanel: document.querySelector("#signedOutPanel"),
   signedInPanel: document.querySelector("#signedInPanel"),
+  accountTitle: document.querySelector("#accountTitle"),
+  accountHelp: document.querySelector("#accountHelp"),
   authForm: document.querySelector("#authForm"),
   emailInput: document.querySelector("#emailInput"),
   passwordInput: document.querySelector("#passwordInput"),
   rememberInput: document.querySelector("#rememberInput"),
+  loginModeButton: document.querySelector("#loginModeButton"),
   createAccountButton: document.querySelector("#createAccountButton"),
   logoutButton: document.querySelector("#logoutButton"),
   userEmailText: document.querySelector("#userEmailText"),
-  configNote: document.querySelector("#configNote"),
   newBookButton: document.querySelector("#newBookButton"),
   emptyNewBookButton: document.querySelector("#emptyNewBookButton"),
   searchInput: document.querySelector("#searchInput"),
@@ -226,8 +229,15 @@ function render() {
 }
 
 function renderAccount() {
-  els.configNote.hidden = true;
   els.authForm.hidden = false;
+  const creatingAccount = state.authMode === "create";
+
+  els.accountTitle.textContent = creatingAccount ? "Criar conta" : "Entrar na conta";
+  els.accountHelp.textContent = creatingAccount
+    ? "Crie sua conta para salvar a lista na nuvem."
+    : "Salve sua lista na nuvem e acesse em qualquer dispositivo.";
+  els.loginModeButton.className = creatingAccount ? "secondary-button" : "primary-button";
+  els.createAccountButton.className = creatingAccount ? "primary-button" : "secondary-button";
 
   if (state.user) {
     els.signedOutPanel.hidden = true;
@@ -475,7 +485,6 @@ async function initFirebase() {
     });
   } catch (error) {
     state.firebaseReady = false;
-    els.configNote.hidden = true;
     console.error(error);
     showToast("Não consegui conectar ao Firebase. Usando salvamento local.");
   }
@@ -555,6 +564,30 @@ async function createAccount() {
   showToast("Conta criada.");
 }
 
+function setAuthMode(mode) {
+  state.authMode = mode;
+  renderAccount();
+}
+
+async function submitAuthAction() {
+  if (!validateAuthInputs()) return;
+
+  if (!state.firebaseReady) {
+    showToast("Firebase ainda nao conectou. Recarregue a pagina e tente de novo.");
+    return;
+  }
+
+  try {
+    if (state.authMode === "create") {
+      await createAccount();
+    } else {
+      await signIn();
+    }
+  } catch (error) {
+    showToast(authErrorMessage(error));
+  }
+}
+
 function bindEvents() {
   els.statusTabs.forEach((tab) => {
     tab.addEventListener("click", () => {
@@ -565,33 +598,25 @@ function bindEvents() {
 
   els.authForm.addEventListener("submit", async (event) => {
     event.preventDefault();
-    if (!validateAuthInputs()) return;
+    await submitAuthAction();
+  });
 
-    if (!state.firebaseReady) {
-      showToast("Firebase ainda nao conectou. Recarregue a pagina e tente de novo.");
+  els.loginModeButton.addEventListener("click", async () => {
+    if (state.authMode !== "login") {
+      setAuthMode("login");
       return;
     }
 
-    try {
-      await signIn();
-    } catch (error) {
-      showToast(authErrorMessage(error));
-    }
+    await submitAuthAction();
   });
 
   els.createAccountButton.addEventListener("click", async () => {
-    if (!validateAuthInputs()) return;
-
-    if (!state.firebaseReady) {
-      showToast("Firebase ainda nao conectou. Recarregue a pagina e tente de novo.");
+    if (state.authMode !== "create") {
+      setAuthMode("create");
       return;
     }
 
-    try {
-      await createAccount();
-    } catch (error) {
-      showToast(authErrorMessage(error));
-    }
+    await submitAuthAction();
   });
 
   els.logoutButton.addEventListener("click", async () => {

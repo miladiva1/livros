@@ -182,11 +182,6 @@ label span,
   gap: 8px;
 }
 
-.config-note {
-  margin-top: 10px;
-  color: #8d2d2d !important;
-}
-
 .status-tab,
 .ghost-button,
 .secondary-button,

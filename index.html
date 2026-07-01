@@ -43,8 +43,8 @@
 
         <section class="account-panel" aria-label="Conta">
           <div id="signedOutPanel">
-            <strong>Entrar na conta</strong>
-            <p>Salve sua lista na nuvem e acesse em qualquer dispositivo.</p>
+            <strong id="accountTitle">Entrar na conta</strong>
+            <p id="accountHelp">Salve sua lista na nuvem e acesse em qualquer dispositivo.</p>
             <form id="authForm" novalidate>
               <label>
                 <span>E-mail</span>
@@ -59,11 +59,10 @@
                 <span>Lembrar de mim</span>
               </label>
               <div class="account-actions">
-                <button class="primary-button" type="submit">Entrar</button>
+                <button class="primary-button" id="loginModeButton" type="button">Entrar</button>
                 <button class="secondary-button" id="createAccountButton" type="button">Criar conta</button>
               </div>
             </form>
-            <p class="config-note" id="configNote" hidden>Configure o Firebase para ativar login e banco na nuvem.</p>
           </div>
 
           <div id="signedInPanel" hidden>
@@ -217,6 +216,6 @@
     </template>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
-    <script type="module" src="app.js?v=9"></script>
+    <script type="module" src="app.js?v=10"></script>
   </body>
 </html>
