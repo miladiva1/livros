@@ -127,6 +127,42 @@ label span,
   gap: 8px;
 }
 
+.account-panel {
+  display: grid;
+  gap: 12px;
+  margin-top: auto;
+  padding: 14px;
+  border: 1px solid rgba(222, 216, 207, 0.88);
+  border-radius: 8px;
+  background: rgba(255, 253, 248, 0.78);
+}
+
+.account-panel strong,
+.account-panel p {
+  display: block;
+  margin: 0;
+}
+
+.account-panel p {
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.account-panel form {
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.account-actions {
+  display: grid;
+  gap: 8px;
+}
+
+.config-note {
+  margin-top: 10px;
+  color: #8d2d2d !important;
+}
+
 .status-tab,
 .ghost-button,
 .secondary-button,
@@ -345,6 +381,17 @@ textarea:focus {
   outline: none;
 }
 
+.book-card.no-link {
+  cursor: default;
+}
+
+.book-card.no-link:hover,
+.book-card.no-link:focus-visible {
+  border-color: var(--line);
+  box-shadow: none;
+  transform: none;
+}
+
 .cover {
   position: relative;
   display: grid;
@@ -477,6 +524,10 @@ form {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.checkbox-line.compact {
+  gap: 8px;
 }
 
 .checkbox-line input {

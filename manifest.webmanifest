@@ -1,7 +1,7 @@
 {
   "name": "Minha Estante BR",
   "short_name": "Estante BR",
-  "description": "Lista de livros nacionais com links para anúncios da Amazon.",
+  "description": "Lista de livros nacionais com links de compra cadastrados.",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#f7f4ef",

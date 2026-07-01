@@ -1,4 +1,7 @@
+import { firebaseConfig, hasFirebaseConfig } from "./firebase-config.js";
+
 const STORAGE_KEY = "minha-estante-br-v1";
+const REMEMBER_EMAIL_KEY = "minha-estante-br-remember-email";
 
 const statusLabels = {
   "quero-comprar": "Quero comprar",
@@ -47,11 +50,18 @@ const sampleBooks = [
 ];
 
 const state = {
-  books: loadBooks(),
+  books: loadLocalBooks(),
   status: "todos",
   search: "",
   publisher: "todas",
   sort: "updated-desc",
+  firebaseReady: false,
+  user: null,
+  remoteLoaded: false,
+  unsubscribeBooks: null,
+  auth: null,
+  db: null,
+  firebaseModules: null,
 };
 
 const els = {
@@ -60,6 +70,16 @@ const els = {
   readBooks: document.querySelector("#readBooks"),
   priorityBooks: document.querySelector("#priorityBooks"),
   statusTabs: [...document.querySelectorAll(".status-tab")],
+  signedOutPanel: document.querySelector("#signedOutPanel"),
+  signedInPanel: document.querySelector("#signedInPanel"),
+  authForm: document.querySelector("#authForm"),
+  emailInput: document.querySelector("#emailInput"),
+  passwordInput: document.querySelector("#passwordInput"),
+  rememberInput: document.querySelector("#rememberInput"),
+  createAccountButton: document.querySelector("#createAccountButton"),
+  logoutButton: document.querySelector("#logoutButton"),
+  userEmailText: document.querySelector("#userEmailText"),
+  configNote: document.querySelector("#configNote"),
   newBookButton: document.querySelector("#newBookButton"),
   emptyNewBookButton: document.querySelector("#emptyNewBookButton"),
   searchInput: document.querySelector("#searchInput"),
@@ -87,42 +107,65 @@ const els = {
   toast: document.querySelector("#toast"),
 };
 
-function loadBooks() {
+function loadLocalBooks() {
   const stored = localStorage.getItem(STORAGE_KEY);
   if (!stored) return sampleBooks;
 
   try {
     const parsed = JSON.parse(stored);
-    return Array.isArray(parsed) ? parsed.map(normalizeStoredBook) : sampleBooks;
+    return Array.isArray(parsed) ? parsed.map(normalizeBook) : sampleBooks;
   } catch {
     return sampleBooks;
   }
 }
 
-function amazonSearchUrl(book) {
-  const query = encodeURIComponent(`${book.title || ""} ${book.author || ""}`.trim());
-  return `https://www.amazon.com.br/s?k=${query || "livros+nacionais"}`;
-}
-
-function isAmazonLink(link) {
-  return /^https?:\/\/([^/]+\.)?amazon\.com\.br\//i.test(link || "");
-}
-
-function normalizeStoredBook(book) {
-  const oldLinks = {
-    "https://www.record.com.br/": "https://www.amazon.com.br/s?k=Um+defeito+de+cor+Ana+Maria+Gon%C3%A7alves",
-    "https://www.atica.com.br/": "https://www.amazon.com.br/s?k=Quarto+de+despejo+Carolina+Maria+de+Jesus",
-    "https://todavialivros.com.br/": "https://www.amazon.com.br/s?k=Torto+arado+Itamar+Vieira+Junior",
-  };
-
+function normalizeBook(book) {
   return {
-    ...book,
-    link: oldLinks[book.link] || (isAmazonLink(book.link) ? book.link : ""),
+    id: book.id || crypto.randomUUID(),
+    title: book.title || "Sem título",
+    author: book.author || "Autoria não informada",
+    publisher: book.publisher || "",
+    status: statusLabels[book.status] ? book.status : "quero-comprar",
+    link: book.link || "",
+    cover: book.cover || "",
+    notes: book.notes || "",
+    priority: Boolean(book.priority),
+    updatedAt: book.updatedAt || Date.now(),
   };
 }
 
-function saveBooks() {
+function saveLocalBooks() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state.books));
+}
+
+function booksCollection() {
+  const { collection } = state.firebaseModules.firestore;
+  return collection(state.db, "users", state.user.uid, "books");
+}
+
+async function saveBook(book) {
+  if (state.user && state.firebaseReady) {
+    const { setDoc, doc } = state.firebaseModules.firestore;
+    await setDoc(doc(booksCollection(), book.id), book);
+    return;
+  }
+
+  const existing = state.books.some((item) => item.id === book.id);
+  state.books = existing ? state.books.map((item) => (item.id === book.id ? book : item)) : [book, ...state.books];
+  saveLocalBooks();
+  render();
+}
+
+async function removeBook(id) {
+  if (state.user && state.firebaseReady) {
+    const { deleteDoc, doc } = state.firebaseModules.firestore;
+    await deleteDoc(doc(booksCollection(), id));
+    return;
+  }
+
+  state.books = state.books.filter((item) => item.id !== id);
+  saveLocalBooks();
+  render();
 }
 
 function normalize(value) {
@@ -163,10 +206,26 @@ function getFilteredBooks() {
 }
 
 function render() {
+  renderAccount();
   renderSummary();
   renderPublisherFilter();
   renderStatusTabs();
   renderBooks();
+}
+
+function renderAccount() {
+  const hasConfig = hasFirebaseConfig();
+  els.configNote.hidden = hasConfig;
+  els.authForm.hidden = !hasConfig;
+
+  if (state.user) {
+    els.signedOutPanel.hidden = true;
+    els.signedInPanel.hidden = false;
+    els.userEmailText.textContent = state.user.email;
+  } else {
+    els.signedOutPanel.hidden = false;
+    els.signedInPanel.hidden = true;
+  }
 }
 
 function renderSummary() {
@@ -178,8 +237,9 @@ function renderSummary() {
 
 function renderPublisherFilter() {
   const current = els.publisherFilter.value || state.publisher;
-  const publishers = [...new Set(state.books.map((book) => book.publisher).filter(Boolean))]
-    .sort((a, b) => a.localeCompare(b, "pt-BR"));
+  const publishers = [...new Set(state.books.map((book) => book.publisher).filter(Boolean))].sort((a, b) =>
+    a.localeCompare(b, "pt-BR"),
+  );
 
   els.publisherFilter.innerHTML = '<option value="todas">Todas</option>';
   publishers.forEach((publisher) => {
@@ -216,7 +276,6 @@ function renderBooks() {
     const initials = item.querySelector("[data-cover-initials]");
     const link = item.querySelector("[data-link]");
     const notes = item.querySelector("[data-notes]");
-    const targetLink = isAmazonLink(book.link) ? book.link : amazonSearchUrl(book);
 
     item.querySelector("[data-title]").textContent = book.title;
     item.querySelector("[data-meta]").textContent = `${book.author}`;
@@ -244,18 +303,27 @@ function renderBooks() {
       notes.textContent = book.notes;
     }
 
-    link.href = targetLink;
-    if (!isAmazonLink(book.link)) link.textContent = "Buscar na Amazon";
-    item.addEventListener("click", (event) => {
-      const interactive = event.target.closest("a, button, input, select, textarea, label");
-      if (!interactive) window.open(targetLink, "_blank", "noopener,noreferrer");
-    });
-    item.addEventListener("keydown", (event) => {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        window.open(targetLink, "_blank", "noopener,noreferrer");
-      }
-    });
+    if (book.link) {
+      link.href = book.link;
+      item.addEventListener("click", (event) => {
+        const interactive = event.target.closest("a, button, input, select, textarea, label");
+        if (!interactive) window.open(book.link, "_blank", "noopener,noreferrer");
+      });
+      item.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          window.open(book.link, "_blank", "noopener,noreferrer");
+        }
+      });
+    } else {
+      item.classList.add("no-link");
+      item.removeAttribute("role");
+      item.removeAttribute("tabindex");
+      item.setAttribute("aria-label", `${book.title} sem link cadastrado`);
+      link.classList.add("disabled");
+      link.removeAttribute("href");
+      link.textContent = "Sem link";
+    }
 
     item.querySelector("[data-edit]").addEventListener("click", () => editBook(book.id));
     item.querySelector("[data-delete]").addEventListener("click", () => deleteBook(book.id));
@@ -292,24 +360,21 @@ function editBook(id) {
   openForm();
 }
 
-function deleteBook(id) {
+async function deleteBook(id) {
   const book = state.books.find((item) => item.id === id);
   if (!book) return;
 
   const confirmed = confirm(`Excluir "${book.title}" da sua lista?`);
   if (!confirmed) return;
 
-  state.books = state.books.filter((item) => item.id !== id);
-  saveBooks();
-  render();
+  await removeBook(id);
   showToast("Livro excluído.");
 }
 
-function handleSubmit(event) {
+async function handleSubmit(event) {
   event.preventDefault();
 
   const id = els.bookId.value || crypto.randomUUID();
-  const existing = state.books.find((book) => book.id === id);
   const book = {
     id,
     title: els.titleInput.value.trim(),
@@ -323,17 +388,9 @@ function handleSubmit(event) {
     updatedAt: Date.now(),
   };
 
-  if (existing) {
-    state.books = state.books.map((item) => (item.id === id ? book : item));
-    showToast("Livro atualizado.");
-  } else {
-    state.books = [book, ...state.books];
-    showToast("Livro adicionado.");
-  }
-
-  saveBooks();
+  await saveBook(book);
+  showToast(els.bookId.value ? "Livro atualizado." : "Livro adicionado.");
   resetForm();
-  render();
 }
 
 function clearFilters() {
@@ -354,12 +411,142 @@ function showToast(message) {
   showToast.timeout = setTimeout(() => els.toast.classList.remove("show"), 2400);
 }
 
+async function initFirebase() {
+  const rememberedEmail = localStorage.getItem(REMEMBER_EMAIL_KEY);
+  if (rememberedEmail) {
+    els.emailInput.value = rememberedEmail;
+    els.rememberInput.checked = true;
+  }
+
+  if (!hasFirebaseConfig()) {
+    renderAccount();
+    return;
+  }
+
+  try {
+    const [appModule, authModule, firestoreModule] = await Promise.all([
+      import("https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js"),
+      import("https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js"),
+      import("https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js"),
+    ]);
+
+    const app = appModule.initializeApp(firebaseConfig);
+    state.auth = authModule.getAuth(app);
+    state.db = firestoreModule.getFirestore(app);
+    state.firebaseModules = { auth: authModule, firestore: firestoreModule };
+    state.firebaseReady = true;
+
+    authModule.onAuthStateChanged(state.auth, (user) => {
+      state.user = user;
+      state.remoteLoaded = false;
+      if (state.unsubscribeBooks) state.unsubscribeBooks();
+      if (user) {
+        subscribeToBooks();
+      } else {
+        state.books = loadLocalBooks();
+        render();
+      }
+    });
+  } catch {
+    state.firebaseReady = false;
+    els.configNote.hidden = false;
+    showToast("Não consegui conectar ao Firebase. Usando salvamento local.");
+  }
+}
+
+function subscribeToBooks() {
+  const { onSnapshot, query, orderBy } = state.firebaseModules.firestore;
+  const localBooks = loadLocalBooks();
+
+  state.unsubscribeBooks = onSnapshot(
+    query(booksCollection(), orderBy("updatedAt", "desc")),
+    async (snapshot) => {
+      const remoteBooks = snapshot.docs.map((doc) => normalizeBook({ id: doc.id, ...doc.data() }));
+
+      if (!state.remoteLoaded && remoteBooks.length === 0 && localBooks.length > 0) {
+        await Promise.all(localBooks.map((book) => saveBook(book)));
+        state.remoteLoaded = true;
+        return;
+      }
+
+      state.remoteLoaded = true;
+      state.books = remoteBooks;
+      saveLocalBooks();
+      render();
+    },
+    () => {
+      showToast("Não consegui carregar a lista da nuvem.");
+    },
+  );
+}
+
+async function setAuthPersistence() {
+  const { setPersistence, browserLocalPersistence, browserSessionPersistence } = state.firebaseModules.auth;
+  const persistence = els.rememberInput.checked ? browserLocalPersistence : browserSessionPersistence;
+  await setPersistence(state.auth, persistence);
+
+  if (els.rememberInput.checked) {
+    localStorage.setItem(REMEMBER_EMAIL_KEY, els.emailInput.value.trim());
+  } else {
+    localStorage.removeItem(REMEMBER_EMAIL_KEY);
+  }
+}
+
+async function signIn() {
+  const { signInWithEmailAndPassword } = state.firebaseModules.auth;
+  await setAuthPersistence();
+  await signInWithEmailAndPassword(state.auth, els.emailInput.value.trim(), els.passwordInput.value);
+  els.passwordInput.value = "";
+  showToast("Login realizado.");
+}
+
+async function createAccount() {
+  const { createUserWithEmailAndPassword } = state.firebaseModules.auth;
+  await setAuthPersistence();
+  await createUserWithEmailAndPassword(state.auth, els.emailInput.value.trim(), els.passwordInput.value);
+  els.passwordInput.value = "";
+  showToast("Conta criada.");
+}
+
 function bindEvents() {
   els.statusTabs.forEach((tab) => {
     tab.addEventListener("click", () => {
       state.status = tab.dataset.status;
       render();
     });
+  });
+
+  els.authForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!state.firebaseReady) {
+      showToast("Configure o Firebase antes de entrar.");
+      return;
+    }
+
+    try {
+      await signIn();
+    } catch {
+      showToast("Não consegui entrar. Confira e-mail e senha.");
+    }
+  });
+
+  els.createAccountButton.addEventListener("click", async () => {
+    if (!state.firebaseReady) {
+      showToast("Configure o Firebase antes de criar conta.");
+      return;
+    }
+
+    try {
+      await createAccount();
+    } catch {
+      showToast("Não consegui criar a conta. A senha precisa ter pelo menos 6 caracteres.");
+    }
+  });
+
+  els.logoutButton.addEventListener("click", async () => {
+    if (!state.firebaseReady) return;
+    await state.firebaseModules.auth.signOut(state.auth);
+    showToast("Você saiu da conta.");
   });
 
   els.newBookButton.addEventListener("click", () => {
@@ -399,3 +586,4 @@ if ("serviceWorker" in navigator) {
 
 bindEvents();
 render();
+initFirebase();
