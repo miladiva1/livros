@@ -129,9 +129,8 @@ label span,
 
 .account-panel {
   display: grid;
-  gap: 12px;
-  margin-top: auto;
-  padding: 14px;
+  gap: 10px;
+  padding: 12px;
   border: 1px solid rgba(222, 216, 207, 0.88);
   border-radius: 8px;
   background: rgba(255, 253, 248, 0.78);
@@ -145,16 +144,18 @@ label span,
 
 .account-panel p {
   color: var(--muted);
-  font-size: 0.88rem;
+  font-size: 0.84rem;
+  line-height: 1.35;
 }
 
 .account-panel form {
-  gap: 10px;
-  margin-top: 12px;
+  gap: 8px;
+  margin-top: 10px;
 }
 
 .account-actions {
   display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 8px;
 }
 
@@ -300,7 +301,7 @@ input,
 select,
 textarea {
   width: 100%;
-  min-height: 44px;
+  min-height: 42px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--surface-strong);

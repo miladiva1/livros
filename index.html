@@ -8,7 +8,7 @@
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="assets/icon.svg" />
-    <link rel="stylesheet" href="styles.css?v=5" />
+    <link rel="stylesheet" href="styles.css?v=7" />
     <title>Minha Estante BR</title>
   </head>
   <body>
@@ -41,14 +41,6 @@
           </div>
         </div>
 
-        <nav class="status-nav" aria-label="Filtrar por status">
-          <button class="status-tab active" data-status="todos" type="button">Todos</button>
-          <button class="status-tab" data-status="quero-comprar" type="button">Quero comprar</button>
-          <button class="status-tab" data-status="lendo" type="button">Lendo</button>
-          <button class="status-tab" data-status="ja-li" type="button">Já li</button>
-          <button class="status-tab" data-status="comprado" type="button">Comprado</button>
-        </nav>
-
         <section class="account-panel" aria-label="Conta">
           <div id="signedOutPanel">
             <strong>Entrar na conta</strong>
@@ -80,6 +72,14 @@
             <button class="secondary-button" id="logoutButton" type="button">Sair</button>
           </div>
         </section>
+
+        <nav class="status-nav" aria-label="Filtrar por status">
+          <button class="status-tab active" data-status="todos" type="button">Todos</button>
+          <button class="status-tab" data-status="quero-comprar" type="button">Quero comprar</button>
+          <button class="status-tab" data-status="lendo" type="button">Lendo</button>
+          <button class="status-tab" data-status="ja-li" type="button">Já li</button>
+          <button class="status-tab" data-status="comprado" type="button">Comprado</button>
+        </nav>
       </aside>
 
       <main class="main-content">
