@@ -182,6 +182,22 @@ label span,
   gap: 8px;
 }
 
+.account-message {
+  margin-top: 2px !important;
+  padding: 9px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(53, 86, 74, 0.2);
+  background: rgba(53, 86, 74, 0.1);
+  color: var(--forest-dark) !important;
+  font-weight: 700;
+}
+
+.account-message[data-type="error"] {
+  border-color: rgba(141, 45, 45, 0.25);
+  background: rgba(141, 45, 45, 0.08);
+  color: #8d2d2d !important;
+}
+
 .status-tab,
 .ghost-button,
 .secondary-button,

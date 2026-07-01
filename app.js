@@ -55,6 +55,7 @@ const els = {
   rememberInput: document.querySelector("#rememberInput"),
   loginModeButton: document.querySelector("#loginModeButton"),
   createAccountButton: document.querySelector("#createAccountButton"),
+  accountMessage: document.querySelector("#accountMessage"),
   logoutButton: document.querySelector("#logoutButton"),
   userEmailText: document.querySelector("#userEmailText"),
   newBookButton: document.querySelector("#newBookButton"),
@@ -394,6 +395,16 @@ function showToast(message) {
   showToast.timeout = setTimeout(() => els.toast.classList.remove("show"), 2400);
 }
 
+function showAccountMessage(message, type = "info") {
+  els.accountMessage.textContent = message;
+  els.accountMessage.dataset.type = type;
+  els.accountMessage.hidden = false;
+  clearTimeout(showAccountMessage.timeout);
+  showAccountMessage.timeout = setTimeout(() => {
+    els.accountMessage.hidden = true;
+  }, 4200);
+}
+
 function authErrorMessage(error) {
   const code = error?.code || "";
   const messages = {
@@ -497,13 +508,13 @@ function validateAuthInputs() {
 
   if (!emailLooksValid) {
     els.emailInput.focus();
-    showToast("Digite um email valido para criar a conta.");
+    showAccountMessage("Digite um email valido.", "error");
     return false;
   }
 
   if (password.length < 6) {
     els.passwordInput.focus();
-    showToast("Digite uma senha com pelo menos 6 caracteres.");
+    showAccountMessage("Digite uma senha com pelo menos 6 caracteres.", "error");
     return false;
   }
 
@@ -515,7 +526,7 @@ async function signIn() {
   await setAuthPersistence();
   await signInWithEmailAndPassword(state.auth, els.emailInput.value.trim(), els.passwordInput.value);
   els.passwordInput.value = "";
-  showToast("Login realizado.");
+  showAccountMessage("Login realizado.", "success");
 }
 
 async function createAccount() {
@@ -523,7 +534,7 @@ async function createAccount() {
   await setAuthPersistence();
   await createUserWithEmailAndPassword(state.auth, els.emailInput.value.trim(), els.passwordInput.value);
   els.passwordInput.value = "";
-  showToast("Conta criada.");
+  showAccountMessage("Conta criada. Sua lista ja pode sincronizar.", "success");
 }
 
 function setAuthMode(mode) {
@@ -535,7 +546,7 @@ async function submitAuthAction() {
   if (!validateAuthInputs()) return;
 
   if (!state.firebaseReady) {
-    showToast("Firebase ainda nao conectou. Recarregue a pagina e tente de novo.");
+    showAccountMessage("Firebase ainda nao conectou. Recarregue a pagina e tente de novo.", "error");
     return;
   }
 
@@ -546,7 +557,7 @@ async function submitAuthAction() {
       await signIn();
     }
   } catch (error) {
-    showToast(authErrorMessage(error));
+    showAccountMessage(authErrorMessage(error), "error");
   }
 }
 
