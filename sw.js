@@ -1,10 +1,10 @@
-const CACHE_NAME = "minha-estante-br-v6";
+const CACHE_NAME = "minha-estante-br-v8";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./styles.css?v=5",
-  "./app.js?v=5",
-  "./firebase-config.js",
+  "./app.js?v=6",
+  "./firebase-config.js?v=2",
   "./manifest.webmanifest",
   "./assets/icon.svg",
 ];

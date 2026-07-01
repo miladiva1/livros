@@ -1,4 +1,4 @@
-import { firebaseConfig, hasFirebaseConfig } from "./firebase-config.js";
+import { firebaseConfig, hasFirebaseConfig } from "./firebase-config.js?v=2";
 
 const STORAGE_KEY = "minha-estante-br-v1";
 const REMEMBER_EMAIL_KEY = "minha-estante-br-remember-email";
