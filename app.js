@@ -22,44 +22,6 @@ const statusLabels = {
   comprado: "Comprado",
 };
 
-const sampleBooks = [
-  {
-    id: crypto.randomUUID(),
-    title: "Um defeito de cor",
-    author: "Ana Maria Gonçalves",
-    publisher: "Record",
-    status: "quero-comprar",
-    link: "https://www.amazon.com.br/s?k=Um+defeito+de+cor+Ana+Maria+Gon%C3%A7alves",
-    cover: "",
-    notes: "Exemplo inicial para testar a lista.",
-    priority: true,
-    updatedAt: Date.now() - 1000,
-  },
-  {
-    id: crypto.randomUUID(),
-    title: "Quarto de despejo",
-    author: "Carolina Maria de Jesus",
-    publisher: "Ática",
-    status: "ja-li",
-    link: "https://www.amazon.com.br/s?k=Quarto+de+despejo+Carolina+Maria+de+Jesus",
-    cover: "",
-    notes: "Manter na lista de lidos.",
-    priority: false,
-    updatedAt: Date.now() - 2000,
-  },
-  {
-    id: crypto.randomUUID(),
-    title: "Torto arado",
-    author: "Itamar Vieira Junior",
-    publisher: "Todavia",
-    status: "comprado",
-    link: "https://www.amazon.com.br/s?k=Torto+arado+Itamar+Vieira+Junior",
-    cover: "",
-    notes: "",
-    priority: false,
-    updatedAt: Date.now() - 3000,
-  },
-];
 
 const state = {
   books: loadLocalBooks(),
@@ -124,13 +86,13 @@ const els = {
 
 function loadLocalBooks() {
   const stored = localStorage.getItem(STORAGE_KEY);
-  if (!stored) return sampleBooks;
+  if (!stored) return [];
 
   try {
     const parsed = JSON.parse(stored);
-    return Array.isArray(parsed) ? parsed.map(normalizeBook) : sampleBooks;
+    return Array.isArray(parsed) ? parsed.map(normalizeBook) : [];
   } catch {
-    return sampleBooks;
+    return [];
   }
 }
 
