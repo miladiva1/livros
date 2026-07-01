@@ -1,6 +1,6 @@
-# Minha Estante BR
+# Minha Estante
 
-PWA para organizar livros nacionais, autoras brasileiras e links de compra cadastrados pela usuaria.
+PWA para organizar livros e links de compra cadastrados pela usuaria.
 
 ## O que esta versao faz
 
