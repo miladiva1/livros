@@ -226,9 +226,8 @@ function render() {
 }
 
 function renderAccount() {
-  const hasConfig = hasFirebaseConfig();
-  els.configNote.hidden = hasConfig;
-  els.authForm.hidden = !hasConfig;
+  els.configNote.hidden = true;
+  els.authForm.hidden = false;
 
   if (state.user) {
     els.signedOutPanel.hidden = true;
@@ -474,9 +473,10 @@ async function initFirebase() {
         render();
       }
     });
-  } catch {
+  } catch (error) {
     state.firebaseReady = false;
-    els.configNote.hidden = false;
+    els.configNote.hidden = true;
+    console.error(error);
     showToast("Não consegui conectar ao Firebase. Usando salvamento local.");
   }
 }
@@ -519,6 +519,26 @@ async function setAuthPersistence() {
   }
 }
 
+function validateAuthInputs() {
+  const email = els.emailInput.value.trim();
+  const password = els.passwordInput.value;
+  const emailLooksValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+  if (!emailLooksValid) {
+    els.emailInput.focus();
+    showToast("Digite um email valido para criar a conta.");
+    return false;
+  }
+
+  if (password.length < 6) {
+    els.passwordInput.focus();
+    showToast("Digite uma senha com pelo menos 6 caracteres.");
+    return false;
+  }
+
+  return true;
+}
+
 async function signIn() {
   const { signInWithEmailAndPassword } = state.firebaseModules.auth;
   await setAuthPersistence();
@@ -545,8 +565,10 @@ function bindEvents() {
 
   els.authForm.addEventListener("submit", async (event) => {
     event.preventDefault();
+    if (!validateAuthInputs()) return;
+
     if (!state.firebaseReady) {
-      showToast("Configure o Firebase antes de entrar.");
+      showToast("Firebase ainda nao conectou. Recarregue a pagina e tente de novo.");
       return;
     }
 
@@ -558,8 +580,10 @@ function bindEvents() {
   });
 
   els.createAccountButton.addEventListener("click", async () => {
+    if (!validateAuthInputs()) return;
+
     if (!state.firebaseReady) {
-      showToast("Configure o Firebase antes de criar conta.");
+      showToast("Firebase ainda nao conectou. Recarregue a pagina e tente de novo.");
       return;
     }
 
