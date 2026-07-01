@@ -1,9 +1,9 @@
-const CACHE_NAME = "minha-estante-br-v11";
+const CACHE_NAME = "minha-estante-br-v12";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./styles.css?v=8",
-  "./app.js?v=6",
+  "./app.js?v=7",
   "./firebase-config.js?v=2",
   "./manifest.webmanifest",
   "./assets/icon.svg",
@@ -26,10 +26,18 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
 
+  if (event.request.mode === "navigate") {
+    event.respondWith(fetch(event.request).catch(() => caches.match("./index.html")));
+    return;
+  }
+
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) return cached;
-      return fetch(event.request).catch(() => caches.match("./index.html"));
-    }),
+    fetch(event.request)
+      .then((response) => {
+        const copy = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+        return response;
+      })
+      .catch(() => caches.match(event.request)),
   );
 });

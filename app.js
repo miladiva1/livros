@@ -411,6 +411,21 @@ function showToast(message) {
   showToast.timeout = setTimeout(() => els.toast.classList.remove("show"), 2400);
 }
 
+function authErrorMessage(error) {
+  const code = error?.code || "";
+  const messages = {
+    "auth/email-already-in-use": "Esse e-mail já tem conta. Use Entrar.",
+    "auth/invalid-email": "Digite um e-mail válido.",
+    "auth/invalid-credential": "E-mail ou senha incorretos.",
+    "auth/operation-not-allowed": "Ative Email/Password no Firebase Authentication.",
+    "auth/unauthorized-domain": "Autorize miladiva1.github.io nos domínios do Firebase.",
+    "auth/weak-password": "A senha precisa ter pelo menos 6 caracteres.",
+    "auth/network-request-failed": "Falha de conexão com o Firebase.",
+  };
+
+  return messages[code] || `Erro do Firebase: ${code || "desconhecido"}`;
+}
+
 async function initFirebase() {
   const rememberedEmail = localStorage.getItem(REMEMBER_EMAIL_KEY);
   if (rememberedEmail) {
@@ -525,8 +540,8 @@ function bindEvents() {
 
     try {
       await signIn();
-    } catch {
-      showToast("Não consegui entrar. Confira e-mail e senha.");
+    } catch (error) {
+      showToast(authErrorMessage(error));
     }
   });
 
@@ -538,8 +553,8 @@ function bindEvents() {
 
     try {
       await createAccount();
-    } catch {
-      showToast("Não consegui criar a conta. A senha precisa ter pelo menos 6 caracteres.");
+    } catch (error) {
+      showToast(authErrorMessage(error));
     }
   });
 
