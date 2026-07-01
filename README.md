@@ -10,7 +10,6 @@ PWA para organizar livros nacionais, autoras brasileiras e links de anúncios da
 - Marca prioridade de compra.
 - Abre o anúncio da Amazon ao clicar no livro ou no botão "Abrir anúncio".
 - Salva tudo no navegador com `localStorage`.
-- Exporta e importa a lista em JSON.
 - Funciona como PWA com manifest e service worker.
 
 ## Como rodar
@@ -22,20 +21,6 @@ python -m http.server 5173
 ```
 
 Depois acesse `http://localhost:5173`.
-
-## Como instalar no celular
-
-Android:
-
-- Abra o link no Chrome.
-- Toque no menu do navegador.
-- Escolha "Adicionar a tela inicial" ou "Instalar app".
-
-iPhone:
-
-- Abra o link no Safari.
-- Toque em compartilhar.
-- Escolha "Adicionar a Tela de Inicio".
 
 ## Proximos passos possiveis
 

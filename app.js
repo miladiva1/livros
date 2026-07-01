@@ -52,7 +52,6 @@ const state = {
   search: "",
   publisher: "todas",
   sort: "updated-desc",
-  deferredPrompt: null,
 };
 
 const els = {
@@ -61,9 +60,6 @@ const els = {
   readBooks: document.querySelector("#readBooks"),
   priorityBooks: document.querySelector("#priorityBooks"),
   statusTabs: [...document.querySelectorAll(".status-tab")],
-  installButton: document.querySelector("#installButton"),
-  exportButton: document.querySelector("#exportButton"),
-  importFile: document.querySelector("#importFile"),
   newBookButton: document.querySelector("#newBookButton"),
   emptyNewBookButton: document.querySelector("#emptyNewBookButton"),
   searchInput: document.querySelector("#searchInput"),
@@ -351,48 +347,6 @@ function clearFilters() {
   render();
 }
 
-function exportBooks() {
-  const blob = new Blob([JSON.stringify(state.books, null, 2)], {
-    type: "application/json",
-  });
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = "minha-estante-br.json";
-  anchor.click();
-  URL.revokeObjectURL(url);
-  showToast("Lista exportada.");
-}
-
-function importBooks(file) {
-  const reader = new FileReader();
-  reader.onload = () => {
-    try {
-      const imported = JSON.parse(reader.result);
-      if (!Array.isArray(imported)) throw new Error("Formato inválido");
-
-      state.books = imported.map((book) => ({
-        id: book.id || crypto.randomUUID(),
-        title: book.title || "Sem título",
-        author: book.author || "Autoria não informada",
-        publisher: book.publisher || "",
-        status: statusLabels[book.status] ? book.status : "quero-comprar",
-        link: book.link || "",
-        cover: book.cover || "",
-        notes: book.notes || "",
-        priority: Boolean(book.priority),
-        updatedAt: book.updatedAt || Date.now(),
-      }));
-      saveBooks();
-      clearFilters();
-      showToast("Lista importada.");
-    } catch {
-      showToast("Não consegui importar esse arquivo.");
-    }
-  };
-  reader.readAsText(file);
-}
-
 function showToast(message) {
   els.toast.textContent = message;
   els.toast.classList.add("show");
@@ -420,12 +374,6 @@ function bindEvents() {
   els.cancelEditButton.addEventListener("click", resetForm);
   els.bookForm.addEventListener("submit", handleSubmit);
   els.clearFiltersButton.addEventListener("click", clearFilters);
-  els.exportButton.addEventListener("click", exportBooks);
-  els.importFile.addEventListener("change", (event) => {
-    const [file] = event.target.files;
-    if (file) importBooks(file);
-    event.target.value = "";
-  });
 
   els.searchInput.addEventListener("input", (event) => {
     state.search = event.target.value;
@@ -440,20 +388,6 @@ function bindEvents() {
   els.sortSelect.addEventListener("change", (event) => {
     state.sort = event.target.value;
     renderBooks();
-  });
-
-  window.addEventListener("beforeinstallprompt", (event) => {
-    event.preventDefault();
-    state.deferredPrompt = event;
-    els.installButton.hidden = false;
-  });
-
-  els.installButton.addEventListener("click", async () => {
-    if (!state.deferredPrompt) return;
-    state.deferredPrompt.prompt();
-    await state.deferredPrompt.userChoice;
-    state.deferredPrompt = null;
-    els.installButton.hidden = true;
   });
 }
 

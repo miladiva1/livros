@@ -150,12 +150,6 @@ label span,
   color: white;
 }
 
-.sidebar-actions {
-  display: grid;
-  gap: 8px;
-  margin-top: auto;
-}
-
 .ghost-button,
 .secondary-button,
 .primary-button,
@@ -190,17 +184,6 @@ label span,
 .icon-button:hover {
   border-color: #bdb5aa;
   background: #faf6ee;
-}
-
-.file-button {
-  cursor: pointer;
-}
-
-#importFile {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
 }
 
 .main-content {
@@ -563,7 +546,6 @@ form {
   .brand,
   .summary-grid,
   .status-nav,
-  .sidebar-actions,
   .topbar,
   .toolbar,
   .content-grid {
@@ -583,11 +565,6 @@ form {
   .status-tab {
     flex: 0 0 auto;
     min-width: 128px;
-  }
-
-  .sidebar-actions {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    margin-top: 0;
   }
 
   .main-content {
@@ -616,8 +593,7 @@ form {
   }
 
   .toolbar,
-  .form-row,
-  .sidebar-actions {
+  .form-row {
     grid-template-columns: 1fr;
   }
 
