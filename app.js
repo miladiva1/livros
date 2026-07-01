@@ -1,7 +1,19 @@
-import { firebaseConfig, hasFirebaseConfig } from "./firebase-config.js?v=2";
-
 const STORAGE_KEY = "minha-estante-br-v1";
 const REMEMBER_EMAIL_KEY = "minha-estante-br-remember-email";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCp4cqQEH9DZ9-Sjynpf4vTwNiM561824M",
+  authDomain: "livros-b9b5e.firebaseapp.com",
+  projectId: "livros-b9b5e",
+  storageBucket: "livros-b9b5e.firebasestorage.app",
+  messagingSenderId: "715620704508",
+  appId: "1:715620704508:web:6a3118f87ff978090cf779",
+  measurementId: "G-XRMQ2WVLLW",
+};
+
+function hasFirebaseConfig() {
+  return Boolean(firebaseConfig.apiKey && firebaseConfig.authDomain && firebaseConfig.projectId && firebaseConfig.appId);
+}
 
 const statusLabels = {
   "quero-comprar": "Quero comprar",
@@ -593,12 +605,19 @@ function bindEvents() {
   });
 }
 
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js");
-  });
+async function clearLegacyCache() {
+  if ("serviceWorker" in navigator) {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    await Promise.all(registrations.map((registration) => registration.unregister()));
+  }
+
+  if ("caches" in window) {
+    const keys = await caches.keys();
+    await Promise.all(keys.map((key) => caches.delete(key)));
+  }
 }
 
 bindEvents();
 render();
 initFirebase();
+clearLegacyCache();

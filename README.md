@@ -10,7 +10,7 @@ PWA para organizar livros nacionais, autoras brasileiras e links de compra cadas
 - Marca prioridade de compra.
 - Abre exatamente o link cadastrado no livro.
 - Salva no navegador com `localStorage` quando Firebase nao esta configurado.
-- Sincroniza na nuvem com Firebase Auth + Firestore quando `firebase-config.js` esta preenchido.
+- Sincroniza na nuvem com Firebase Auth + Firestore.
 - Tem login por e-mail/senha e opcao "Lembrar de mim" sem guardar senha.
 - Funciona como PWA com manifest e service worker.
 
@@ -20,7 +20,7 @@ PWA para organizar livros nacionais, autoras brasileiras e links de compra cadas
 2. Ative Authentication com provedor "Email/password".
 3. Crie um banco Cloud Firestore.
 4. Crie um app Web no Firebase e copie o objeto `firebaseConfig`.
-5. Cole os dados em `firebase-config.js`.
+5. Cole os dados no topo de `app.js`, se precisar trocar de projeto Firebase.
 6. Publique novamente no GitHub Pages.
 
 Estrutura usada no Firestore:
